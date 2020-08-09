@@ -30,11 +30,13 @@ int main ()
 	if (!map.LoadResources() || !map.LoadMap())
 		return -1;
 
+	map.CenterMap();
 	while (WindowPtr->isOpen())
 	{
 		PollEvents();
 
-		map.SetMousePostion(sf::Mouse::getPosition(*WindowPtr));
+		auto pos = sf::Mouse::getPosition(*WindowPtr);
+		map.SetMousePostion(pos);
 
 		WindowPtr->clear(sf::Color::Black);
 		map.Draw();
