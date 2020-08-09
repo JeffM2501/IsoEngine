@@ -56,9 +56,9 @@ public:
 		TileSize = sf::Vector2u(x, y);
 	}
 
-	size_t AddTileSetTile(const std::string& tile);
+	size_t AddTileSetTile(int id, const std::string& tile);
 
-	void SetLayerTile(int layer, sf::Vector2i pos, int textureIndex);
+	void SetLayerTile(int layer, sf::Vector2i pos, int textureID);
 
 	void ClearLayer(int layer);
 	void ClearMap();
@@ -70,7 +70,7 @@ private:
 	typedef std::vector<Tile> TileColumn;
 	typedef std::vector<TileColumn> TileLayer;
 
-	std::vector<size_t> TileTextures;
+	std::map<int, size_t> TileTextures;
 	std::map<int, TileLayer> Layers;
 
 	bool DoHighlights = true;

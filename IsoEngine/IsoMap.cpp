@@ -67,14 +67,13 @@ std::optional<Tile> IsoMap::GetTile(sf::Vector2i pos, int layer)
 	return Layers[layer][pos.y][pos.x];
 }
 
-size_t IsoMap::AddTileSetTile(const std::string& tile)
+size_t IsoMap::AddTileSetTile(int textureID, const std::string& tile)
 {
-	size_t id = TileTextures.size();
-	TileTextures.push_back(SpriteFactory::LoadTexture(tile));
-	return id;
+	TileTextures[textureID] = SpriteFactory::LoadTexture(tile);
+	return TileTextures[textureID];
 }
 
-void IsoMap::SetLayerTile(int layerID, sf::Vector2i pos, int textureIndex)
+void IsoMap::SetLayerTile(int layerID, sf::Vector2i pos, int textureID)
 {
 	auto layer = Layers.find(layerID);
 	if (layer == Layers.end())
@@ -84,10 +83,10 @@ void IsoMap::SetLayerTile(int layerID, sf::Vector2i pos, int textureIndex)
 
 	auto coord = ClampToMap(pos);
 
-	if (textureIndex < 0 || textureIndex >= TileTextures.size())
+	if (TileTextures.find(textureID) == TileTextures.end())
 		return;
 
-	layer->second[coord.x][coord.y].SetSprite(SpriteFactory::GetSprite(TileTextures[textureIndex]));
+	layer->second[coord.x][coord.y].SetSprite(SpriteFactory::GetSprite(TileTextures[textureID]));
 }
 
 void IsoMap::SetupLayer(int layerID)
@@ -143,6 +142,8 @@ bool IsoMap::Draw()
 	mapViewRegon.left = -ViewOffset.x - (TileSize.x * 2);
 	mapViewRegon.top = -ViewOffset.y - (TileSize.y * 2);
 
+	bool first = true;
+
 	for (auto layer : Layers)
 	{
 		for (auto cols : layer.second)
@@ -153,10 +154,16 @@ bool IsoMap::Draw()
 					tile.Draw(WindowPtr, ViewOffset);
 			}		
 		}
+
+		if (first)
+		{
+			if (HighlightSprite != nullptr)
+				WindowPtr->draw(*HighlightSprite);
+		}
+		first = false;
 	}
 		
-	if (HighlightSprite != nullptr)
-		WindowPtr->draw(*HighlightSprite);
+	
 
 	return true;
 }
