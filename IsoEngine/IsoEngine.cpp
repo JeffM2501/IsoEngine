@@ -7,9 +7,13 @@
 #include "IsoMap.h"
 
 RenderWindowPtr WindowPtr;
+std::shared_ptr<IsoMap> MapPtr;
 
 void PollEvents();
 bool SetupWindow();
+
+sf::Time FrameTime;
+sf::Clock Timer;
 
 #ifdef SFML_SYSTEM_IOS
 #include <SFML/Main.hpp>
@@ -25,26 +29,32 @@ int main ()
 	if (!SetupWindow())
 		return -1;
 
-	IsoMap map(WindowPtr);
+	MapPtr = std::make_shared<IsoMap>(WindowPtr);
 
-	if (!map.LoadResources() || !map.LoadMap())
-		return -1;
-
-	map.CenterMap();
-	while (WindowPtr->isOpen())
+	if (MapPtr->LoadResources() && MapPtr->LoadMap("Maps/exampleMap.tmx"))
 	{
-		PollEvents();
+		MapPtr->CenterMap();
+		Timer.restart();
 
-		auto pos = sf::Mouse::getPosition(*WindowPtr);
-		map.SetMousePostion(pos);
+		while (WindowPtr->isOpen())
+		{
+			PollEvents();
 
-		WindowPtr->clear(sf::Color::Black);
-		map.Draw();
-		WindowPtr->display();
+			auto pos = sf::Mouse::getPosition(*WindowPtr);
+			MapPtr->SetMousePostion(pos);
+
+			WindowPtr->clear(sf::Color::Black);
+			MapPtr->Draw();
+			WindowPtr->display();
+		}
 	}
+	else if (WindowPtr != nullptr)
+		WindowPtr->close();
 
 	SpriteFactory::Cleanup();
-	map.Cleanup();
+	MapPtr->Cleanup();
+
+	MapPtr = nullptr;
 	WindowPtr = nullptr;
 
 	return 0;
@@ -59,6 +69,9 @@ bool SetupWindow()
 
 void PollEvents()
 {
+	FrameTime = Timer.getElapsedTime();
+	Timer.restart();
+
 	sf::Event sfEvent;
 	while (WindowPtr->pollEvent(sfEvent))
 	{
@@ -68,10 +81,34 @@ void PollEvents()
 			WindowPtr->close();
 			break;
 
+		case sf::Event::EventType::KeyPressed:
+			switch (sfEvent.key.code)
+			{
+			case sf::Keyboard::Key::Num1:
+				MapPtr->CenterMap();
+				break;
+
+			default:
+				break;
+			}
+			break;
+
 		default:
 			break;
 		}
 	}
+	
+	float speed = 1000 * FrameTime.asSeconds();
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W))
+		MapPtr->MoveViewpoint(0, speed * 1);
+	else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S))
+		MapPtr->MoveViewpoint(0, speed * -1);
+	
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A))
+		MapPtr->MoveViewpoint(speed * 1, 0);
+	else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D))
+		MapPtr->MoveViewpoint(speed * -1, 0);
 }
 
 
