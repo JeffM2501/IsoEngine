@@ -31,7 +31,7 @@ int main ()
 
 	MapPtr = std::make_shared<IsoMap>(WindowPtr);
 
-	if (MapPtr->LoadResources() && MapPtr->LoadMap("Maps/exampleMap.tmx"))
+	if (MapPtr->LoadResources() && MapPtr->LoadMap("Maps/exampleDeepMap.tmx"))
 	{
 		MapPtr->CenterMap();
 		Timer.restart();

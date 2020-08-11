@@ -17,7 +17,11 @@ public:
 	static sf::Vector2u GetTextureSize(size_t hash);
 
 private:
+
+	static void LoadTexture(size_t hash);
+
 	static std::map<size_t, TexturePtr> SpriteTextures;
+	static std::map<size_t, std::string> TexturePaths;
 };
 
 

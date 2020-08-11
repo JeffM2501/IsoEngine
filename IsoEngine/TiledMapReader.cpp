@@ -37,8 +37,12 @@ bool TiledMapReader::Read(const std::string& mapFilename, IsoMap& map)
         std::string childName = child.name();
         if (childName == "tileset")
         {
+            int idOffset = 0;
+            if (!child.attribute("firstgid").empty())
+                idOffset = child.attribute("firstgid").as_int();
+
             std::string tilesetFile = child.attribute("source").as_string();
-            if (!ReadTileSet(ResourceManager::GetRelativeResource(mapFilename, tilesetFile), map))
+            if (!ReadTileSet(ResourceManager::GetRelativeResource(mapFilename, tilesetFile), idOffset, map))
                 return false;
         }
         else if (childName == "layer")
@@ -71,7 +75,7 @@ bool TiledMapReader::Read(const std::string& mapFilename, IsoMap& map)
                         continue;
 
                     size_t charPos = 0;
-                    pos.y = 0;
+                    pos.x = 0;
                     do
 					{
                         size_t nextDelim = colText.find_first_of(',', charPos);
@@ -81,12 +85,12 @@ bool TiledMapReader::Read(const std::string& mapFilename, IsoMap& map)
                         int val = std::atoi(colText.c_str() + charPos);
                         charPos = nextDelim + 1;
 
-                        map.SetLayerTile(layerID, pos, val - 1);
+                        map.SetLayerTile(layerID, pos, val);
 
-                        pos.y++;
+                        pos.x++;
 
                     } while (charPos <= colText.size());
-                    pos.x++;
+                    pos.y++;
                 } while (linePos < contents.size() && linePos != std::string::npos);
             }
         }
@@ -95,7 +99,7 @@ bool TiledMapReader::Read(const std::string& mapFilename, IsoMap& map)
     return true;
 }
 
-bool TiledMapReader::ReadTileSet(const std::string& tilesetFileName, IsoMap& map)
+bool TiledMapReader::ReadTileSet(const std::string& tilesetFileName,int idOffset, IsoMap& map)
 {
 	pugi::xml_document doc;
 	pugi::xml_parse_result result = doc.load_file(tilesetFileName.c_str());
@@ -123,7 +127,17 @@ bool TiledMapReader::ReadTileSet(const std::string& tilesetFileName, IsoMap& map
 
             std::string source = image.attribute("source").as_string();
 
-            map.AddTileSetTile(id, ResourceManager::ForceFilePath("Tiles",source));
+            if (source.size() > 0)
+            {
+                if (source[0] == '.')
+                {
+                    size_t firstSlash = source.find_first_of('/');
+                    if (firstSlash != std::string::npos)
+                        source = source.substr(firstSlash + 1);
+                }
+            }
+
+            map.AddTileSetTile(id + idOffset, source);
 		}
 	}
 

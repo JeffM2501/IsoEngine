@@ -6,9 +6,9 @@ class Tile
 {
 public:
 	Tile(){};
-	Tile(sf::Vector2f pos, SpritePtr base);
+	Tile(sf::Vector2f pos);
 
-	void SetSprite(SpritePtr sprite);
+	void SetSprite(SpritePtr sprite, sf::Vector2u nominalSize);
 
 	void Draw(RenderWindowPtr window, const sf::Vector2f &viewOffset);
 
@@ -16,5 +16,6 @@ public:
 
 protected:
 	sf::Vector2f MapPostion;
+	sf::Vector2f DrawPostion;
 	SpritePtr	Sprite;
 };

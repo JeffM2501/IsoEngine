@@ -4,7 +4,7 @@
 
 bool IsoMap::LoadResources()
 {
-	HighlightTexture = SpriteFactory::LoadTexture("Tiles/iso_tile_hl.png");
+	HighlightTexture = SpriteFactory::LoadTexture("Highlight.png");
 	return true;
 }
 
@@ -86,7 +86,7 @@ void IsoMap::SetLayerTile(int layerID, sf::Vector2i pos, int textureID)
 	if (TileTextures.find(textureID) == TileTextures.end())
 		return;
 
-	layer->second[coord.x][coord.y].SetSprite(SpriteFactory::GetSprite(TileTextures[textureID]));
+	layer->second[coord.x][coord.y].SetSprite(SpriteFactory::GetSprite(TileTextures[textureID]), TileSize);
 }
 
 void IsoMap::SetupLayer(int layerID)
@@ -102,7 +102,7 @@ void IsoMap::SetupLayer(int layerID)
 		col.reserve(MapSize.y);
 		for (float y = 0; y < MapSize.y; y++)
 		{
-			col.push_back(Tile(MapGridToIso(x, y), nullptr));
+			col.push_back(Tile(MapGridToIso(x, y)));
 		}
 		layerRef.push_back(col);
 	}
@@ -137,7 +137,7 @@ bool IsoMap::Draw()
 	sf::Rect<float> mapViewRegon;
 
 	mapViewRegon.width = static_cast<float>(WindowPtr->getSize().x) + (TileSize.x * 2);
-	mapViewRegon.height = static_cast<float>(WindowPtr->getSize().y) + (TileSize.y * 2);
+	mapViewRegon.height = static_cast<float>(WindowPtr->getSize().y) + (TileSize.y * 3);
 
 	mapViewRegon.left = -ViewOffset.x - (TileSize.x * 2);
 	mapViewRegon.top = -ViewOffset.y - (TileSize.y * 2);
