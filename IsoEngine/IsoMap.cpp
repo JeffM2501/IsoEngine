@@ -4,12 +4,18 @@
 
 bool IsoMap::LoadResources()
 {
-	HighlightTexture = SpriteFactory::LoadTexture("Highlight.png");
+	if (MapType == MapTypes::Orthographic)
+		HighlightTexture = SpriteFactory::LoadTexture("Tiles/Tile_HL.png");
+	else
+		HighlightTexture = SpriteFactory::LoadTexture("Highlight.png");
 	return true;
 }
 
-sf::Vector2f IsoMap::MapGridToIso(float x, float y)
+sf::Vector2f IsoMap::GetTileDisplayLocation(float x, float y)
 {
+	if (MapType == MapTypes::Orthographic)
+		return sf::Vector2f(x * TileSize.x, y * TileSize.y);
+
 	float halfWidth = TileSize.x * 0.5f;
 	float halfHeight = TileSize.y * 0.5f;
 	float quarterHeight = TileSize.y * 0.25f;
@@ -17,8 +23,11 @@ sf::Vector2f IsoMap::MapGridToIso(float x, float y)
 	return sf::Vector2f(x * halfWidth - y * halfWidth - halfWidth, y * halfHeight + (x * halfHeight));
 }
 
-sf::Vector2i IsoMap::ScreenToMapGridIso(const sf::Vector2i& mousePos)
+sf::Vector2i IsoMap::ScreenToMap(const sf::Vector2i& mousePos)
 {
+	if (MapType == MapTypes::Orthographic)
+		return sf::Vector2i((int)(mousePos.y - ViewOffset.y) / TileSize.y, (int)(mousePos.x - ViewOffset.x) / TileSize.x);
+
 	sf::Vector2f worldSpacePoint((float)mousePos.x - ViewOffset.x, (float)mousePos.y - ViewOffset.y);
 
 	float scale = 1.0f;
@@ -83,10 +92,11 @@ void IsoMap::SetLayerTile(int layerID, sf::Vector2i pos, int textureID)
 
 	auto coord = ClampToMap(pos);
 
-	if (TileTextures.find(textureID) == TileTextures.end())
-		return;
+	SpritePtr sprite = nullptr;
+	if (TileTextures.find(textureID) != TileTextures.end())
+		sprite = SpriteFactory::GetSprite(TileTextures[textureID]);
 
-	layer->second[coord.x][coord.y].SetSprite(SpriteFactory::GetSprite(TileTextures[textureID]), TileSize);
+	layer->second[coord.x][coord.y].SetSprite(sprite, TileSize);
 }
 
 void IsoMap::SetupLayer(int layerID)
@@ -102,7 +112,7 @@ void IsoMap::SetupLayer(int layerID)
 		col.reserve(MapSize.y);
 		for (float y = 0; y < MapSize.y; y++)
 		{
-			col.push_back(Tile(MapGridToIso(x, y)));
+			col.push_back(Tile(GetTileDisplayLocation(x, y)));
 		}
 		layerRef.push_back(col);
 	}
@@ -197,7 +207,7 @@ void IsoMap::SetMousePostion(const sf::Vector2i& pos)
 	if (WindowPtr == nullptr)
 		return;
 
-	TileUnderCursor = ScreenToMapGridIso(pos);
+	TileUnderCursor = ScreenToMap(pos);
 
 	if (!DoHighlights && HighlightSprite != nullptr)
 		HighlightSprite = nullptr;
@@ -213,7 +223,7 @@ void IsoMap::SetMousePostion(const sf::Vector2i& pos)
 			if (HighlightSprite == nullptr)
 				HighlightSprite = SpriteFactory::GetSprite(HighlightTexture);
 
-			HighlightSprite->setPosition(MapGridToIso(TileUnderCursor) + ViewOffset);
+			HighlightSprite->setPosition(GetTileDisplayLocation(TileUnderCursor) + ViewOffset);
 		}
 	}
 }
@@ -234,7 +244,7 @@ void IsoMap::CenterMap()
 	if (WindowPtr == nullptr)
 		return;
 
-	ViewOffset = MapGridToIso(MapSize.x * 0.5f, MapSize.y * 0.5f) * -1.0f;
+	ViewOffset = GetTileDisplayLocation(MapSize.x * 0.5f, MapSize.y * 0.5f) * -1.0f;
 	ViewOffset.x += WindowPtr->getSize().x * 0.5f;
 	ViewOffset.y += WindowPtr->getSize().y * 0.5f;
 }

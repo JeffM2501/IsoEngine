@@ -12,15 +12,14 @@ public:
 
 	void Draw(RenderWindowPtr window, const sf::Vector2f &viewOffset);
 
-	inline const sf::Vector2f& GetMapPostion() { return MapPostion; }
-
-	inline sf::Vector2f GetDrawPostion()
-	{
-		return DrawPostion;
-	}
+	inline sf::Vector2f GetMapPostion() { return MapPostion; }
+	inline sf::Vector2f GetDrawPostion() { return DrawPostion; }
 	
 	inline bool IsSelected() { return Selected; }
 	inline void ToggleSelection() { Selected = !Selected; }
+
+	inline bool IsEmpty() { return Sprite == nullptr; }
+
 protected:
 	sf::Vector2f MapPostion;
 	sf::Vector2f DrawPostion;

@@ -8,10 +8,15 @@ Tile::Tile(sf::Vector2f pos) : MapPostion(pos)
 void Tile::SetSprite(SpritePtr sprite, sf::Vector2i nominalSize)
 {
 	Sprite = sprite;
-	auto spriteSize = sprite->getTexture()->getSize();
-	int offsetY = nominalSize.y - spriteSize.y;
-	DrawPostion.x = MapPostion.x;
-	DrawPostion.y = MapPostion.y + offsetY;
+	if (sprite != nullptr)
+	{
+		auto spriteSize = sprite->getTexture()->getSize();
+		int offsetY = nominalSize.y - spriteSize.y;
+		DrawPostion.x = MapPostion.x;
+		DrawPostion.y = MapPostion.y + offsetY;
+	}
+	else
+		DrawPostion = MapPostion;
 }
 
 void Tile::Draw(RenderWindowPtr window, const sf::Vector2f &viewOffset)

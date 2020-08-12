@@ -4,6 +4,12 @@
 #include "SpriteFactory.h"
 #include <optional>
 
+enum class MapTypes
+{
+	Orthographic,
+	Isometric,
+};
+
 class IsoMap
 {
 protected:
@@ -11,17 +17,20 @@ protected:
 	sf::Vector2i TileSize;
 	sf::Vector2i MapSize;
 
-	sf::Vector2f MapGridToIso(float x, float y);
-	inline sf::Vector2f MapGridToIso(sf::Vector2i& pos)
+	sf::Vector2f GetTileDisplayLocation(float x, float y);
+	inline sf::Vector2f GetTileDisplayLocation(sf::Vector2i& pos)
 	{ 
-		return MapGridToIso((float)pos.x, (float)pos.y); 
+		return GetTileDisplayLocation((float)pos.x, (float)pos.y); 
 	}
 
-	sf::Vector2i ScreenToMapGridIso(const sf::Vector2i& pos);
+	sf::Vector2i ScreenToMap(const sf::Vector2i& pos);
 
 	sf::Vector2f ViewOffset;
 
 	void SetupLayer(int layerID);
+
+	MapTypes MapType = MapTypes::Isometric;
+
 public:
 
 	IsoMap(RenderWindowPtr winPtr) : WindowPtr(winPtr){}
@@ -46,9 +55,10 @@ public:
 		return GetTile(sf::Vector2i(x, y), layer);
 	}
 
-	inline void SetMapSize(int x, int y)
+	inline void SetMapSize(int x, int y, MapTypes mapType)
 	{
 		MapSize = sf::Vector2i(x, y);
+		MapType = mapType;
 	}
 
 	inline void SetTileSize(int x, int y)

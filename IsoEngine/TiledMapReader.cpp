@@ -18,13 +18,14 @@ bool TiledMapReader::Read(const std::string& mapFilename, IsoMap& map)
     std::string orient = root.attribute("orientation").as_string();
     std::string renderorder = root.attribute("renderorder").as_string();
 
-    if (orient != "isometric" || renderorder != "right-down")
-        return false;
+    MapTypes mapType = MapTypes::Isometric;
+    if (orient == "orthogonal")
+        mapType = MapTypes::Orthographic;
 
     int width = root.attribute("width").as_int();
     int height = root.attribute("height").as_int();
 
-    map.SetMapSize(width, height);
+    map.SetMapSize(width, height, mapType);
 
 	int tilewidth = root.attribute("tilewidth").as_int();
 	int tileheight = root.attribute("tileheight").as_int();
@@ -82,10 +83,12 @@ bool TiledMapReader::Read(const std::string& mapFilename, IsoMap& map)
                     do
 					{
                         size_t nextDelim = colText.find_first_of(',', charPos);
-                        if (nextDelim == std::string::npos)
+                        if (nextDelim == std::string::npos || nextDelim == colText.size()-1)
                             nextDelim = colText.size();
 
-                        int val = std::atoi(colText.c_str() + charPos);
+
+                        std::string valStr = colText.substr(charPos, nextDelim - charPos);
+                        int val = std::atoi(valStr.c_str());
                         charPos = nextDelim + 1;
 
                         map.SetLayerTile(layerID, pos, val);
