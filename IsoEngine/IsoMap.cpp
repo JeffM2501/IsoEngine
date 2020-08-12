@@ -162,6 +162,7 @@ bool IsoMap::Draw()
 				auto tile = GetTile(TileUnderCursor, layer.first);
 				if (tile != nullptr)
 				{
+					// draw the highlight at the position of the base layer tile, so it appears on the "surface" of the isometric tile not the floor
 					HighlightSprite->setPosition(tile->GetDrawPostion() + ViewOffset);
 					WindowPtr->draw(*HighlightSprite);
 				}
