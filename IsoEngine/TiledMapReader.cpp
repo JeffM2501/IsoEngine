@@ -49,6 +49,9 @@ bool TiledMapReader::Read(const std::string& mapFilename, IsoMap& map)
         {
             int layerID = child.attribute("id").as_int();
 
+			if (map.FirstLayer < 0)
+				map.FirstLayer = layerID;
+
             auto data = child.child("data");
             std::string encoding = data.attribute("encoding").as_string();
             if (encoding == "csv")

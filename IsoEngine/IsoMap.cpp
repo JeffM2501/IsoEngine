@@ -17,7 +17,7 @@ sf::Vector2f IsoMap::MapGridToIso(float x, float y)
 	return sf::Vector2f(x * halfWidth - y * halfWidth - halfWidth, y * halfHeight + (x * halfHeight));
 }
 
-sf::Vector2u IsoMap::ScreenToMapGridIso(const sf::Vector2i& mousePos)
+sf::Vector2i IsoMap::ScreenToMapGridIso(const sf::Vector2i& mousePos)
 {
 	sf::Vector2f worldSpacePoint((float)mousePos.x - ViewOffset.x, (float)mousePos.y - ViewOffset.y);
 
@@ -25,8 +25,8 @@ sf::Vector2u IsoMap::ScreenToMapGridIso(const sf::Vector2i& mousePos)
 
 	sf::Vector2f tileSize = sf::Vector2f(TileSize.x * scale, TileSize.y * scale);
 
-	int mouseXTile = int(worldSpacePoint.y / tileSize.y + worldSpacePoint.x / tileSize.x);
-	int mouseYTile = int(-worldSpacePoint.x / tileSize.x + worldSpacePoint.y / tileSize.y);
+	int mouseYTile = int(worldSpacePoint.y / tileSize.y + worldSpacePoint.x / tileSize.x);
+	int mouseXTile = int(-worldSpacePoint.x / tileSize.x + worldSpacePoint.y / tileSize.y);
 
 	return ClampToMap(sf::Vector2i(mouseXTile, mouseYTile));
 }
@@ -36,9 +36,9 @@ bool IsoMap::PointOnMap(sf::Vector2i pos)
 	return (pos.x < static_cast<int>(MapSize.x) && pos.x >= 0 && pos.y < static_cast<int>(MapSize.y) && pos.y >= 0);
 }
 
-sf::Vector2u IsoMap::ClampToMap(sf::Vector2i pos)
+sf::Vector2i IsoMap::ClampToMap(sf::Vector2i pos)
 {
-	sf::Vector2u target;
+	sf::Vector2i target;
 
 	if (pos.x > (int)MapSize.x - 1)
 		target.x = MapSize.x - 1;
@@ -59,12 +59,12 @@ sf::Vector2u IsoMap::ClampToMap(sf::Vector2i pos)
 	return target;
 }
 
-std::optional<Tile> IsoMap::GetTile(sf::Vector2i pos, int layer)
+Tile* IsoMap::GetTile(sf::Vector2i pos, int layer)
 {
 	if (!PointOnMap(pos))
-		return std::nullopt;
+		return nullptr;
 
-	return Layers[layer][pos.y][pos.x];
+	return &(Layers[layer][pos.y][pos.x]);
 }
 
 size_t IsoMap::AddTileSetTile(int textureID, const std::string& tile)
@@ -157,13 +157,19 @@ bool IsoMap::Draw()
 
 		if (first)
 		{
-			if (HighlightSprite != nullptr)
-				WindowPtr->draw(*HighlightSprite);
+			if (HighlightSprite != nullptr && DoHighlights)
+			{
+				auto tile = GetTile(TileUnderCursor, layer.first);
+				if (tile != nullptr)
+				{
+					HighlightSprite->setPosition(tile->GetDrawPostion() + ViewOffset);
+					WindowPtr->draw(*HighlightSprite);
+				}
+			}
+				
 		}
 		first = false;
 	}
-		
-	
 
 	return true;
 }
@@ -173,9 +179,16 @@ void IsoMap::SetHighlight(bool mode)
 	DoHighlights = mode;
 }
 
-sf::Vector2u IsoMap::GetTileUnderCursor()
+sf::Vector2i IsoMap::GetTileUnderCursor()
 {
 	return TileUnderCursor;
+}
+
+void IsoMap::SelectTile(sf::Vector2i tilePos)
+{
+	auto tile = GetTile(tilePos, FirstLayer);
+	if (tile != nullptr)
+		tile->ToggleSelection();
 }
 
 void IsoMap::SetMousePostion(const sf::Vector2i& pos)

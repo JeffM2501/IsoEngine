@@ -8,16 +8,16 @@ class IsoMap
 {
 protected:
 	RenderWindowPtr WindowPtr = nullptr;
-	sf::Vector2u TileSize;
-	sf::Vector2u MapSize;
+	sf::Vector2i TileSize;
+	sf::Vector2i MapSize;
 
 	sf::Vector2f MapGridToIso(float x, float y);
-	inline sf::Vector2f MapGridToIso(sf::Vector2u& pos)
+	inline sf::Vector2f MapGridToIso(sf::Vector2i& pos)
 	{ 
 		return MapGridToIso((float)pos.x, (float)pos.y); 
 	}
 
-	sf::Vector2u ScreenToMapGridIso(const sf::Vector2i& pos);
+	sf::Vector2i ScreenToMapGridIso(const sf::Vector2i& pos);
 
 	sf::Vector2f ViewOffset;
 
@@ -36,24 +36,24 @@ public:
 	void CenterMap();
 	void Cleanup();
 
-	sf::Vector2u ClampToMap(sf::Vector2i pos);
+	sf::Vector2i ClampToMap(sf::Vector2i pos);
 	bool PointOnMap(sf::Vector2i pos);
 
-	std::optional<Tile> GetTile(sf::Vector2i pos, int layer = 0);
+	Tile* GetTile(sf::Vector2i pos, int layer);
 
-	inline std::optional<Tile> GetTile(int x, int y)
+	inline Tile* GetTile(int x, int y, int layer)
 	{ 
-		return GetTile(sf::Vector2i(x, y));
+		return GetTile(sf::Vector2i(x, y), layer);
 	}
 
 	inline void SetMapSize(int x, int y)
 	{
-		MapSize = sf::Vector2u(x, y);
+		MapSize = sf::Vector2i(x, y);
 	}
 
 	inline void SetTileSize(int x, int y)
 	{
-		TileSize = sf::Vector2u(x, y);
+		TileSize = sf::Vector2i(x, y);
 	}
 
 	size_t AddTileSetTile(int id, const std::string& tile);
@@ -64,7 +64,11 @@ public:
 	void ClearMap();
 
 	void SetHighlight(bool mode);
-	sf::Vector2u GetTileUnderCursor();
+	sf::Vector2i GetTileUnderCursor();
+
+	void SelectTile(sf::Vector2i tile);
+
+	int FirstLayer = -1;
 
 private:
 	typedef std::vector<Tile> TileColumn;
@@ -74,7 +78,7 @@ private:
 	std::map<int, TileLayer> Layers;
 
 	bool DoHighlights = true;
-	sf::Vector2u TileUnderCursor;
+	sf::Vector2i TileUnderCursor;
 	size_t HighlightTexture = 0;
 	SpritePtr HighlightSprite;
 };

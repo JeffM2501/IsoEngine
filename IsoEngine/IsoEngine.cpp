@@ -38,10 +38,7 @@ int main ()
 
 		while (WindowPtr->isOpen())
 		{
-			PollEvents();
-
-			auto pos = sf::Mouse::getPosition(*WindowPtr);
-			MapPtr->SetMousePostion(pos);
+			PollEvents();			
 
 			WindowPtr->clear(sf::Color::Black);
 			MapPtr->Draw();
@@ -72,6 +69,10 @@ void PollEvents()
 	FrameTime = Timer.getElapsedTime();
 	Timer.restart();
 
+	// tell the map the mouse postion so it can have the tile under the cursor ready
+	auto pos = sf::Mouse::getPosition(*WindowPtr);
+	MapPtr->SetMousePostion(pos);
+
 	sf::Event sfEvent;
 	while (WindowPtr->pollEvent(sfEvent))
 	{
@@ -92,6 +93,9 @@ void PollEvents()
 				break;
 			}
 			break;
+		case sf::Event::EventType::MouseButtonPressed:
+			if (sfEvent.mouseButton.button == sf::Mouse::Button::Left)
+				MapPtr->SelectTile(MapPtr->GetTileUnderCursor());
 
 		default:
 			break;

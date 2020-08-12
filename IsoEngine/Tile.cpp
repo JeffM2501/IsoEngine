@@ -5,7 +5,7 @@ Tile::Tile(sf::Vector2f pos) : MapPostion(pos)
 	DrawPostion = MapPostion;
 }
 
-void Tile::SetSprite(SpritePtr sprite, sf::Vector2u nominalSize)
+void Tile::SetSprite(SpritePtr sprite, sf::Vector2i nominalSize)
 {
 	Sprite = sprite;
 	auto spriteSize = sprite->getTexture()->getSize();
@@ -19,6 +19,7 @@ void Tile::Draw(RenderWindowPtr window, const sf::Vector2f &viewOffset)
 	if (Sprite != nullptr)
 	{
 		Sprite->setPosition(DrawPostion + viewOffset);
+		Sprite->setColor(Selected ? sf::Color::Magenta : sf::Color::White);
 		window->draw(*Sprite);
 	}	
 }
