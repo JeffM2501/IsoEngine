@@ -17,14 +17,17 @@ void Tile::SetSprite(SpritePtr sprite, sf::Vector2i nominalSize)
 	}
 	else
 		DrawPostion = MapPostion;
+
+	if (Sprite != nullptr)
+		Sprite->setPosition(DrawPostion);
 }
 
-void Tile::Draw(RenderWindowPtr window, const sf::Vector2f &viewOffset)
+void Tile::Draw(Viewport::Ptr view)
 {
 	if (Sprite != nullptr)
 	{
-		Sprite->setPosition(DrawPostion + viewOffset);
+
 		Sprite->setColor(Selected ? sf::Color::Magenta : sf::Color::White);
-		window->draw(*Sprite);
+		view->Window.draw(*Sprite);
 	}	
 }

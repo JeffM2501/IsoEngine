@@ -1,6 +1,7 @@
 #pragma once
 
 #include "IsoEngine.h"
+#include "Viewport.h"
 
 class Tile
 {
@@ -10,10 +11,10 @@ public:
 
 	void SetSprite(SpritePtr sprite, sf::Vector2i nominalSize);
 
-	void Draw(RenderWindowPtr window, const sf::Vector2f &viewOffset);
+	void Draw(Viewport::Ptr view);
 
 	inline sf::Vector2f GetMapPostion() { return MapPostion; }
-	inline sf::Vector2f GetDrawPostion() { return DrawPostion; }
+	inline const sf::Vector2f& GetDrawPostion() { return DrawPostion; }
 	
 	inline bool IsSelected() { return Selected; }
 	inline void ToggleSelection() { Selected = !Selected; }

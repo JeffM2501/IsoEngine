@@ -2,6 +2,7 @@
 #include "IsoEngine.h"
 #include "Tile.h"
 #include "SpriteFactory.h"
+#include "Viewport.h"
 #include <optional>
 
 enum class MapTypes
@@ -13,7 +14,7 @@ enum class MapTypes
 class IsoMap
 {
 protected:
-	RenderWindowPtr WindowPtr = nullptr;
+	Viewport::Ptr ViewPtr = nullptr;
 	sf::Vector2i TileSize;
 	sf::Vector2i MapSize;
 
@@ -23,9 +24,7 @@ protected:
 		return GetTileDisplayLocation((float)pos.x, (float)pos.y); 
 	}
 
-	sf::Vector2i ScreenToMap(const sf::Vector2i& pos);
-
-	sf::Vector2f ViewOffset;
+	sf::Vector2i WorldToMap(const sf::Vector2f& pos);
 
 	void SetupLayer(int layerID);
 
@@ -33,7 +32,7 @@ protected:
 
 public:
 
-	IsoMap(RenderWindowPtr winPtr) : WindowPtr(winPtr){}
+	IsoMap(Viewport::Ptr viewPtr) : ViewPtr(viewPtr){}
 
 	bool LoadResources();
 	bool LoadMap(const std::string& mapFile);

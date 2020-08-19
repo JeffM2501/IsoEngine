@@ -23,12 +23,12 @@ sf::Vector2f IsoMap::GetTileDisplayLocation(float x, float y)
 	return sf::Vector2f(x * halfWidth - y * halfWidth - halfWidth, y * halfHeight + (x * halfHeight));
 }
 
-sf::Vector2i IsoMap::ScreenToMap(const sf::Vector2i& mousePos)
+sf::Vector2i IsoMap::WorldToMap(const sf::Vector2f& mousePos)
 {
 	if (MapType == MapTypes::Orthographic)
-		return sf::Vector2i((int)(mousePos.y - ViewOffset.y) / TileSize.y, (int)(mousePos.x - ViewOffset.x) / TileSize.x);
+		return sf::Vector2i((int)(mousePos.y) / TileSize.y, (int)(mousePos.x) / TileSize.x);
 
-	sf::Vector2f worldSpacePoint((float)mousePos.x - ViewOffset.x, (float)mousePos.y - ViewOffset.y);
+	sf::Vector2f worldSpacePoint(mousePos.x, mousePos.y);
 
 	float scale = 1.0f;
 
@@ -132,25 +132,21 @@ void IsoMap::ClearMap()
 
 bool IsoMap::LoadMap(const std::string& mapFile)
 {
-	if (WindowPtr == nullptr)
+	if (ViewPtr == nullptr)
 		return false;
 
  	TiledMapReader reader;
-	return reader.Read(mapFile, *this);
+	if (!reader.Read(mapFile, *this))
+		return false;
+
+	ViewPtr->SetViewRectTolerance(TileSize.x, TileSize.y);
+	return true;
 }
 
 bool IsoMap::Draw()
 {
-	if (WindowPtr == nullptr)
+	if (ViewPtr == nullptr)
 		return false;
-
-	sf::Rect<float> mapViewRegon;
-
-	mapViewRegon.width = static_cast<float>(WindowPtr->getSize().x) + (TileSize.x * 2);
-	mapViewRegon.height = static_cast<float>(WindowPtr->getSize().y) + (TileSize.y * 3);
-
-	mapViewRegon.left = -ViewOffset.x - (TileSize.x * 2);
-	mapViewRegon.top = -ViewOffset.y - (TileSize.y * 2);
 
 	bool first = true;
 
@@ -160,8 +156,8 @@ bool IsoMap::Draw()
 		{
 			for (auto tile : cols)
 			{
-				if (mapViewRegon.contains(tile.GetMapPostion()))
-					tile.Draw(WindowPtr, ViewOffset);
+				if (ViewPtr->TileInView(tile.GetDrawPostion()))
+					tile.Draw(ViewPtr);
 			}		
 		}
 
@@ -173,8 +169,8 @@ bool IsoMap::Draw()
 				if (tile != nullptr)
 				{
 					// draw the highlight at the position of the base layer tile, so it appears on the "surface" of the isometric tile not the floor
-					HighlightSprite->setPosition(tile->GetDrawPostion() + ViewOffset);
-					WindowPtr->draw(*HighlightSprite);
+					HighlightSprite->setPosition(tile->GetDrawPostion());
+					ViewPtr->Window.draw(*HighlightSprite);
 				}
 			}
 				
@@ -204,10 +200,10 @@ void IsoMap::SelectTile(sf::Vector2i tilePos)
 
 void IsoMap::SetMousePostion(const sf::Vector2i& pos)
 {
-	if (WindowPtr == nullptr)
+	if (ViewPtr == nullptr)
 		return;
 
-	TileUnderCursor = ScreenToMap(pos);
+	TileUnderCursor = WorldToMap(ViewPtr->Window.mapPixelToCoords(pos));
 
 	if (!DoHighlights && HighlightSprite != nullptr)
 		HighlightSprite = nullptr;
@@ -223,35 +219,34 @@ void IsoMap::SetMousePostion(const sf::Vector2i& pos)
 			if (HighlightSprite == nullptr)
 				HighlightSprite = SpriteFactory::GetSprite(HighlightTexture);
 
-			HighlightSprite->setPosition(GetTileDisplayLocation(TileUnderCursor) + ViewOffset);
+			HighlightSprite->setPosition(GetTileDisplayLocation(TileUnderCursor));
 		}
 	}
 }
 
 void IsoMap::SetViewpoint(sf::Vector2f offset)
 {
-	ViewOffset = offset;
+	ViewPtr->View.setCenter(offset);
+	ViewPtr->SetView();
 }
 
 void IsoMap::MoveViewpoint(float x, float y)
 {
-	ViewOffset.x += x;
-	ViewOffset.y += y;
+	ViewPtr->View.move(x, y);
+	ViewPtr->SetView();
 }
 
 void IsoMap::CenterMap()
 {
-	if (WindowPtr == nullptr)
+	if (ViewPtr == nullptr)
 		return;
 
-	ViewOffset = GetTileDisplayLocation(MapSize.x * 0.5f, MapSize.y * 0.5f) * -1.0f;
-	ViewOffset.x += WindowPtr->getSize().x * 0.5f;
-	ViewOffset.y += WindowPtr->getSize().y * 0.5f;
+	SetViewpoint(GetTileDisplayLocation(MapSize.x * 0.5f, MapSize.y * 0.5f) * -1.0f);
 }
 
 void IsoMap::Cleanup()
 {
 	ClearMap();
 	TileTextures.clear();
-	WindowPtr = nullptr;
+	ViewPtr = nullptr;
 }

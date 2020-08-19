@@ -85,7 +85,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Application.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="GameObject.h" />
     <ClInclude Include="IsoEngine.h" />
     <ClInclude Include="IsoMap.h" />
     <ClInclude Include="PUGIXML\pugiconfig.hpp" />
@@ -96,8 +98,11 @@
     <ClInclude Include="targetver.h" />
     <ClInclude Include="Tile.h" />
     <ClInclude Include="TiledMapReader.h" />
+    <ClInclude Include="Viewport.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Application.cpp" />
+    <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="IsoEngine.cpp" />
     <ClCompile Include="IsoMap.cpp" />
     <ClCompile Include="PUGIXML\pugixml.cpp" />
@@ -105,6 +110,7 @@
     <ClCompile Include="SpriteFactory.cpp" />
     <ClCompile Include="Tile.cpp" />
     <ClCompile Include="TiledMapReader.cpp" />
+    <ClCompile Include="Viewport.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="IsoEngine.rc" />
