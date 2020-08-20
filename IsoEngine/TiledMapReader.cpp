@@ -1,6 +1,6 @@
 #include "TiledMapReader.h"
 #include "ResourceManager.h"
-#include "PUGIXML/pugixml.hpp"
+
 
 bool TiledMapReader::Read(const std::string& mapFilename, IsoMap& map)
 {
@@ -43,12 +43,19 @@ bool TiledMapReader::Read(const std::string& mapFilename, IsoMap& map)
                 idOffset = child.attribute("firstgid").as_int();
 
             std::string tilesetFile = child.attribute("source").as_string();
-            if (!ReadTileSet(ResourceManager::GetRelativeResource(mapFilename, tilesetFile), idOffset, map))
+            if (tilesetFile.size() == 0)
+            {
+                if (!ReadTileSetNode(child, idOffset, map))
+                    return false;
+            }
+            else if (!ReadTileSetFile(ResourceManager::GetRelativeResource(mapFilename, tilesetFile), idOffset, map))
                 return false;
         }
         else if (childName == "layer")
         {
             int layerID = child.attribute("id").as_int();
+
+            std::string name = child.attribute("name").as_string();
 
 			if (map.FirstLayer < 0)
 				map.FirstLayer = layerID;
@@ -105,7 +112,73 @@ bool TiledMapReader::Read(const std::string& mapFilename, IsoMap& map)
     return true;
 }
 
-bool TiledMapReader::ReadTileSet(const std::string& tilesetFileName,int idOffset, IsoMap& map)
+static void ReadImageData(int& width, int& height, std::string& source, pugi::xml_node image)
+{
+	width = image.attribute("width").as_int();
+	height = image.attribute("height").as_int();
+
+	source = image.attribute("source").as_string();
+
+	if (source.size() > 0)
+	{
+		if (source[0] == '.')
+		{
+			size_t firstSlash = source.find_first_of('/');
+			if (firstSlash != std::string::npos)
+				source = source.substr(firstSlash + 1);
+		}
+	}
+}
+
+bool TiledMapReader::ReadTileSetNode(pugi::xml_node root, int idOffset, IsoMap& map)
+{
+	int tileWidth = root.attribute("tilewidth").as_int();
+	int tileHeight = root.attribute("tileheight").as_int();
+
+	int tileCount = root.attribute("tilecount").as_int();
+
+    int columCount = root.attribute("columns").as_int();
+    int spacing = root.attribute("spacing").as_int();
+    int margin = root.attribute("margin").as_int();
+
+	for (pugi::xml_node child : root.children())
+	{
+		std::string n = child.name();
+		if (n == "tile")
+		{
+			int id = child.attribute("id").as_int();
+
+            int width, height;
+            std::string source;
+            ReadImageData(width, height, source, child.child("image"));
+
+            if (source.size() > 0)
+			    map.AddTileSetTile(id + idOffset, source);
+		}
+        else if (n == "image")
+        {
+			int width, height;
+			std::string source;
+			ReadImageData(width, height, source, child);
+
+            int rows = tileCount / columCount;
+            int id = 0;
+            for (int y = 0; y < rows; y++)
+            {
+                for (int x = 0; x < columCount; x++)
+                {
+                    sf::IntRect rect(x * tileWidth + (x * spacing) + margin, y * tileHeight + (y * spacing) + margin, tileWidth, tileHeight);
+                    map.AddTileSetTile(id + idOffset, source, rect);
+                    id++;
+                }
+            }
+        }
+	}
+
+	return true;
+}
+
+bool TiledMapReader::ReadTileSetFile(const std::string& tilesetFileName, int idOffset, IsoMap& map)
 {
 	pugi::xml_document doc;
 	pugi::xml_parse_result result = doc.load_file(tilesetFileName.c_str());
@@ -113,39 +186,7 @@ bool TiledMapReader::ReadTileSet(const std::string& tilesetFileName,int idOffset
 	if (result.status != pugi::xml_parse_status::status_ok)
 		return false;
 
-	auto root = doc.child("tileset");
+	pugi::xml_node root = doc.child("tileset");
 
-	int tilewidth = root.attribute("tilewidth").as_int();
-	int tileheight = root.attribute("tileheight").as_int();
-
-    int tileCount = root.attribute("tilecount").as_int();
-
-	for (auto child : root.children())
-	{
-		std::string n = child.name();
-		if (n == "tile")
-		{
-            int id = child.attribute("id").as_int();
-
-            auto image = child.child("image");
-			int width = image.attribute("width").as_int();
-			int height = image.attribute("height").as_int();
-
-            std::string source = image.attribute("source").as_string();
-
-            if (source.size() > 0)
-            {
-                if (source[0] == '.')
-                {
-                    size_t firstSlash = source.find_first_of('/');
-                    if (firstSlash != std::string::npos)
-                        source = source.substr(firstSlash + 1);
-                }
-            }
-
-            map.AddTileSetTile(id + idOffset, source);
-		}
-	}
-
-    return true;
+    return ReadTileSetNode(root, idOffset, map);
 }

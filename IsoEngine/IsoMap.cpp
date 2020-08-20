@@ -5,9 +5,9 @@
 bool IsoMap::LoadResources()
 {
 	if (MapType == MapTypes::Orthographic)
-		HighlightTexture = SpriteFactory::LoadTexture("Tiles/Tile_HL.png");
+		HighlightTexture = SpriteFactory::AddTexture("Tiles/Tile_HL.png");
 	else
-		HighlightTexture = SpriteFactory::LoadTexture("Highlight.png");
+		HighlightTexture = SpriteFactory::AddTexture("Highlight.png");
 	return true;
 }
 
@@ -76,10 +76,21 @@ Tile* IsoMap::GetTile(sf::Vector2i pos, int layer)
 	return &(Layers[layer][pos.y][pos.x]);
 }
 
-size_t IsoMap::AddTileSetTile(int textureID, const std::string& tile)
+const TileDef& IsoMap::AddTileSetTile(int id, const std::string& tile)
 {
-	TileTextures[textureID] = SpriteFactory::LoadTexture(tile);
-	return TileTextures[textureID];
+	TileDef def;
+	def.Texture = SpriteFactory::AddTexture(tile);
+	TileTextures[id] = def;
+	return TileTextures[id];
+}
+
+const TileDef& IsoMap::AddTileSetTile(int id, const std::string& tile, sf::IntRect& sourceRect)
+{
+	TileDef def;
+	def.Texture = SpriteFactory::AddTexture(tile);
+	def.SourceRect = sourceRect;
+	TileTextures[id] = def;
+	return TileTextures[id];
 }
 
 void IsoMap::SetLayerTile(int layerID, sf::Vector2i pos, int textureID)
@@ -93,8 +104,14 @@ void IsoMap::SetLayerTile(int layerID, sf::Vector2i pos, int textureID)
 	auto coord = ClampToMap(pos);
 
 	SpritePtr sprite = nullptr;
-	if (TileTextures.find(textureID) != TileTextures.end())
-		sprite = SpriteFactory::GetSprite(TileTextures[textureID]);
+	auto itr = TileTextures.find(textureID);
+	if (itr != TileTextures.end())
+	{
+		if (itr->second.SourceRect.width == 0)
+			sprite = SpriteFactory::GetSprite(itr->second.Texture);
+		else
+			sprite = SpriteFactory::GetSprite(itr->second.Texture, itr->second.SourceRect);
+	}
 
 	layer->second[coord.x][coord.y].SetSprite(sprite, TileSize);
 }

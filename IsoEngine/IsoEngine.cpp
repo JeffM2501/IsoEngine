@@ -25,7 +25,7 @@ int main ()
 	Configuration config;
 	config.IconResource = "icon.png";
 	config.Title = "Isometric Game";
-	config.InitalMapName = "Maps/exampleDeepMap.tmx";
+	config.InitalMapName = "Maps/SampleMap/samplemap.tmx";
 
 	Application app;
 	app.Setup(config);

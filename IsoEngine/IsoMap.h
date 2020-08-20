@@ -11,6 +11,13 @@ enum class MapTypes
 	Isometric,
 };
 
+class TileDef
+{
+public:
+	size_t Texture;
+	sf::IntRect SourceRect;
+};
+
 class IsoMap
 {
 protected:
@@ -65,7 +72,8 @@ public:
 		TileSize = sf::Vector2i(x, y);
 	}
 
-	size_t AddTileSetTile(int id, const std::string& tile);
+	const TileDef& AddTileSetTile(int id, const std::string& tileImage);
+	const TileDef& AddTileSetTile(int id, const std::string& tile, sf::IntRect& sourceRect );
 
 	void SetLayerTile(int layer, sf::Vector2i pos, int textureID);
 
@@ -83,7 +91,7 @@ private:
 	typedef std::vector<Tile> TileColumn;
 	typedef std::vector<TileColumn> TileLayer;
 
-	std::map<int, size_t> TileTextures;
+	std::map<int, TileDef> TileTextures;
 	std::map<int, TileLayer> Layers;
 
 	bool DoHighlights = true;

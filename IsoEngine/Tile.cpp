@@ -10,7 +10,7 @@ void Tile::SetSprite(SpritePtr sprite, sf::Vector2i nominalSize)
 	Sprite = sprite;
 	if (sprite != nullptr)
 	{
-		auto spriteSize = sprite->getTexture()->getSize();
+		sf::Vector2i spriteSize(sprite->getTextureRect().width, sprite->getTextureRect().height);
 		int offsetY = nominalSize.y - spriteSize.y;
 		DrawPostion.x = MapPostion.x;
 		DrawPostion.y = MapPostion.y + offsetY;

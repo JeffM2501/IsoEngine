@@ -11,6 +11,20 @@ void SpriteFactory::Cleanup()
 	SpriteTextures.clear();
 }
 
+SpritePtr SpriteFactory::GetSprite(size_t hash, sf::IntRect& rect)
+{
+	auto texItr = SpriteTextures.find(hash);
+	if (texItr == SpriteTextures.end())
+	{
+		LoadTexture(hash);
+		texItr = SpriteTextures.find(hash);
+		if (texItr == SpriteTextures.end())
+			throw std::runtime_error("Unable to locate texture hash " + hash);
+	}
+
+	return std::make_shared<sf::Sprite>(*(texItr->second), rect);
+}
+
 SpritePtr SpriteFactory::GetSprite(size_t hash)
 {
 	auto texItr = SpriteTextures.find(hash);
@@ -40,7 +54,7 @@ void SpriteFactory::LoadTexture(size_t hash)
 	SpriteTextures[hash] = tex;
 }
 
-size_t SpriteFactory::LoadTexture(const std::string& texturePath)
+size_t SpriteFactory::AddTexture(const std::string& texturePath)
 {
 	size_t hash = std::hash<std::string>()(texturePath);
 
@@ -52,7 +66,6 @@ size_t SpriteFactory::LoadTexture(const std::string& texturePath)
 	{
 		std::string realPath = ResourceManager::GetResourcePath(texturePath);
 		TexturePaths[hash] = realPath;
-		LoadTexture(hash);
 	}
 	
 	return hash;
@@ -74,5 +87,10 @@ sf::Vector2u SpriteFactory::GetTextureSize(size_t hash)
 
 SpritePtr SpriteFactory::GetSprite(const std::string& texturePath)
 {
-	return GetSprite(LoadTexture(texturePath));
+	return SpriteFactory::GetSprite(AddTexture(texturePath));
+}
+
+SpritePtr SpriteFactory::GetSprite(const std::string& texturePath, sf::IntRect& rect)
+{
+	return GetSprite(AddTexture(texturePath), rect);
 }
